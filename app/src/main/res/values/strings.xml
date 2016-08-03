@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">okhttputils</string>
+    <string name="vertical">纵向平铺</string>
+    <string name="staggered">瀑布流</string>
+</resources>
