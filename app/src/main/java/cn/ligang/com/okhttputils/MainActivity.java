@@ -21,9 +21,10 @@ import java.util.List;
 
 import cn.ligang.com.okhttputils.bean.ObejectBean;
 import cn.ligang.com.okhttputils.bean.ResultsBean;
+import cn.ligang.com.okhttputils.utils.JsonCallback;
 import cn.ligang.com.okhttputils.utils.okUtils;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends AppCompatActivity implements JsonCallback.AddList {
     @ViewInject(R.id.recycleView)
     private RecyclerView rec;
     @ViewInject(R.id.sw)
@@ -43,20 +44,29 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         com.ligang.viewinject.ViewUtils.inject(this);
-        /**
-         * 通过okhttp的封装类中的异步请求Json对象的方法,实现数据下载
-         */
-        utils.asyncJsonString(PATH + num, new okUtils.Fun4() {
-            @Override
-            public void Result(JSONObject jsonObject) {
-                List<ResultsBean> list = JsonParse(jsonObject);
-                ResultsBeans.addAll(list);
-                Vertical();
-            }
-        });
+
+        //###########################################################################
+        JsonCallback jsonCallback = new JsonCallback(this);
+        final okUtils utils = new okUtils(jsonCallback);
+        utils.asynJson(PATH + num);
+        //###########################################################################
+
+
+//        /**
+//         * 通过okhttp的封装类中的异步请求Json对象的方法,实现数据下载
+//         */
+//        this.utils.asyncJsonString(PATH + num, new okUtils.Fun4() {
+//            @Override
+//            public void Result(JSONObject jsonObject) {
+//                List<ResultsBean> list = JsonParse(jsonObject);
+//                ResultsBeans.addAll(list);
+//                Vertical();
+//            }
+//        });
         linearLayoutManager = new LinearLayoutManager(this);
         staggeManager = new StaggeredGridLayoutManager(2, StaggeredGridLayoutManager.VERTICAL);
         adapter = new MyrecycleAdapter(MainActivity.this, ResultsBeans);
+        Vertical();
 
 
         /**
@@ -70,16 +80,28 @@ public class MainActivity extends AppCompatActivity {
                 /**
                  * 判断当前位置是否到了最后一个,加载更多
                  */
-                if (newState == RecyclerView.SCROLL_STATE_IDLE && lastVisibleItem + 1 == adapter.getItemCount()) {
+//                if (newState == RecyclerView.SCROLL_STATE_IDLE && lastVisibleItem + 1 == adapter.getItemCount()) {
+//
+//                    MainActivity.this.utils.asyncJsonString(PATH + (++num), new okUtils.Fun4() {
+//                        @Override
+//                        public void Result(JSONObject jsonObject) {
+//                            List<ResultsBean> list = JsonParse(jsonObject);
+//                            adapter.addMoreItem(list);
+//                        }
+//                    });
+//                }
+//
 
-                    utils.asyncJsonString(PATH + (++num), new okUtils.Fun4() {
-                        @Override
-                        public void Result(JSONObject jsonObject) {
-                            List<ResultsBean> list = JsonParse(jsonObject);
-                            adapter.addMoreItem(list);
-                        }
-                    });
+
+//#######################################################################################
+
+                if (newState == RecyclerView.SCROLL_STATE_IDLE && lastVisibleItem + 1 == adapter.getItemCount()) {
+                    utils.asynJson(PATH + (++num));
+                    adapter.addMoreItem(listss);
+
                 }
+//#######################################################################################
+
             }
 
             /**
@@ -96,25 +118,25 @@ public class MainActivity extends AppCompatActivity {
         /**
          * 模拟下拉刷新
          */
-       sw.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
-           @Override
-           public void onRefresh() {
-               new Thread(new Runnable() {
-                   @Override
-                   public void run() {
-                       SystemClock.sleep(1000);
-                       runOnUiThread(new Runnable() {
-                           @Override
-                           public void run() {
-                               sw.setRefreshing(false);
-                               adapter.notifyDataSetChanged();
-                           }
-                       });
+        sw.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
+            @Override
+            public void onRefresh() {
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
+                        SystemClock.sleep(1000);
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                sw.setRefreshing(false);
+                                adapter.notifyDataSetChanged();
+                            }
+                        });
 
-                   }
-               }).start();
-           }
-       });
+                    }
+                }).start();
+            }
+        });
 
 
     }
@@ -191,4 +213,16 @@ public class MainActivity extends AppCompatActivity {
         }
         return super.onOptionsItemSelected(item);
     }
+
+
+    //####################################################################################################
+    //这个集合用于增加数据,每次增加数据之前,都必须先把集合清空,否则会有重复数据出现
+    private ArrayList<ResultsBean> listss = new ArrayList<>();
+    //这个回调用于分页更新数据时,添加更多的数据
+    @Override
+    public void addlist(List<ResultsBean> list) {
+        listss.clear();
+        listss.addAll(list);
+    }
+    //####################################################################################################
 }

@@ -26,13 +26,22 @@ public class MyrecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     private static final int TYPE_FOOTER = 1;  //顶部FootView
     public static final int PULLUP_LOAD_MORE = 0; //上拉加载更多
     public static final int LOADING_MORE = 1; //正在加载中
-    private int load_more_status = 0; //上拉加载更多状态-默认为0
+    private int load_more_status = 0; //上拉加载更多状态
 
+    /**
+     * 构造方法
+     *
+     * @param context 上下文
+     * @param list    数据源
+     */
     public MyrecycleAdapter(Context context, List<ResultsBean> list) {
         this.context = context;
         this.list = list;
     }
 
+    /**
+     * list集合中的个数加1
+     */
     @Override
     public int getItemCount() {
         return list.size() + 1;
@@ -67,9 +76,9 @@ public class MyrecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
     public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof LgViewHold) {
             ResultsBean newsBean = list.get(position);
-            ((LgViewHold) holder).tex.setText(newsBean.getDesc());
-            Picasso.with(context).load(newsBean.getUrl()).into(((LgViewHold) holder).img);
-            holder.itemView.setTag(position);
+            LgViewHold lgViewHold = (LgViewHold) holder;
+            lgViewHold.tex.setText(newsBean.getDesc());
+            Picasso.with(context).load(newsBean.getUrl()).into(lgViewHold.img);
         } else if (holder instanceof FootViewHolder) {
             FootViewHolder footViewHolder = (FootViewHolder) holder;
             switch (load_more_status) {
@@ -83,8 +92,10 @@ public class MyrecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
 
     }
+
     /**
-     * 进行判断是普通Item视图还是FootView视图
+     * 进行判断是普通Item布局还是FootView布局
+     *
      * @param position
      * @return
      */
@@ -97,14 +108,18 @@ public class MyrecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
         }
     }
 
-
+    /**
+     * 加载更多并更新
+     *
+     * @param newDatas
+     */
     public void addMoreItem(List<ResultsBean> newDatas) {
         list.addAll(newDatas);
         notifyDataSetChanged();
     }
 
     /**
-     * 正文的适配器
+     * 正文的布局
      */
     class LgViewHold extends RecyclerView.ViewHolder {
 
@@ -120,10 +135,11 @@ public class MyrecycleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHold
 
 
     /**
-     * 底部FootView的适配器
+     * 底部FootView布局
      */
     public class FootViewHolder extends RecyclerView.ViewHolder {
         private TextView foot_more;
+
         public FootViewHolder(View view) {
             super(view);
             foot_more = (TextView) view.findViewById(R.id.more);

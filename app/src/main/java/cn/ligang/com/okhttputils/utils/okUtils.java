@@ -24,6 +24,14 @@ import okhttp3.Response;
 public class okUtils {
     private static OkHttpClient okHttpClient;
     private static Handler handler;
+    private HandleMess hand;
+
+    //#######################################################################################
+    public okUtils(HandleMess hand) {
+        okHttpClient = new OkHttpClient();
+        this.hand = hand;
+    }
+    //#######################################################################################
 
     //单例模式获取对象实例
     private okUtils() {
@@ -61,6 +69,39 @@ public class okUtils {
         });
 
     }
+
+    //#######################################################################################
+
+    /**
+     * 这个方法用于获取数据,并通过不同的接口回调处理不同类型的数据
+     *
+     * @param url
+     */
+    public void asynJson(String url) {
+        final Request request = new Request.Builder().url(url).build();
+        okHttpClient.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(Call call, IOException e) {
+                e.printStackTrace();
+            }
+
+            @Override
+            public void onResponse(Call call, Response response) throws IOException {
+                if (response != null && response.isSuccessful()) {
+                    hand.handle(response.body().bytes());
+                }
+            }
+        });
+
+    }
+
+    //专门处理字节的接口
+    public interface HandleMess {
+        void handle(byte bs[]);
+    }
+
+    //#######################################################################################
+
 
     /**
      * 异步加载成功并返回bytes数组
@@ -216,5 +257,6 @@ public class okUtils {
     public interface Fun4 {
         void Result(JSONObject jsonObject);
     }
+
 
 }
